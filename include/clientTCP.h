@@ -11,6 +11,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <sys/stat.h>
 
 #define SERVER_PORT 6000
 #define SERVER_ADDR "192.168.28.96"

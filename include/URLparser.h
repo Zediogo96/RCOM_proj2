@@ -22,9 +22,9 @@ typedef struct URL{
     int port;
 } URL;
 
-int parseURL(int argc, char *argv[], URL *url);
+int parseURL(char *argv[], URL *url);
 
 int getIP(char *host, URL *urlStruct);
 
-void getPortPlusIp(int *port, char *ip, FILE *socket);
+void calc_portAddress(int *port, FILE *socket);
 

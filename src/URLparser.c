@@ -2,7 +2,7 @@
 
 #define MAX_URL_SIZE 256
 
-int parseURL(int argc, char *argv[], URL *url)
+int parseURL(char *argv[], URL *url)
 {
 
     char temp_path[128];
@@ -66,7 +66,7 @@ int getIP(char *host, URL *url)
     return 0;
 }
 
-void getPortPlusIp(int *port, char *ip, FILE *socket)
+void calc_portAddress(int *port, FILE *socket)
 {
     char *fullString = NULL;
     size_t numBytes;
@@ -82,11 +82,9 @@ void getPortPlusIp(int *port, char *ip, FILE *socket)
         }
     }
 
-    int ip1, ip2, ip3, ip4, port1, port2;
+    int port1, port2;
 
-    sscanf(fullString, "227 Entering Passive Mode (%d,%d,%d,%d,%d,%d)", &ip1, &ip2, &ip3, &ip4, &port1, &port2);
-
-    sprintf(ip, "%d.%d.%d.%d", ip1, ip2, ip3, ip4);
+    sscanf(fullString, "227 Entering Passive Mode (%*d,%*d,%*d,%*d,%d,%d)", &port1, &port2);
 
     *port = port1 * 256 + port2;
 }
