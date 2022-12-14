@@ -12,7 +12,7 @@
 // URL structure
 typedef struct URL{
     char user[256];
-    char password [256];
+    char password[256];
     char host[256];
     char path[256];
     char filename[256];
@@ -21,3 +21,5 @@ typedef struct URL{
 } URL;
 
 int parseURL(int argc, char *argv[], URL *url);
+
+int getIP(char *host, URL *urlStruct);

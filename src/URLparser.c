@@ -9,6 +9,9 @@ int parseURL(int argc, char *argv[], URL *url) {
         exit(-1);
     }
 
+    strcpy(url->user, "\0");
+    strcpy(url->password, "\0");
+
     // Parse the first argument to get the host and path
     sscanf(argv[2], "ftp://%[^/]/%s", url->host, url->path);
 
@@ -21,7 +24,28 @@ int parseURL(int argc, char *argv[], URL *url) {
         strcpy(url->password, "apple123");
     }
 
-    printf("\nUser: %s\nPwd: %s\nHost: %s\nPath: %s\n", url->user, url->password, url->host, url->path);
-    
+    printf("\nUser: %s\nPwd: %s\nHost: %s\nPath: %s\n\n", url->user, url->password, url->host, url->path);
+
+    if(getIP(url->host, url) != 0){
+        printf("Error getting host name\n");
+        return 1;
+    }
+
+    return 0;
+}
+
+
+int getIP(char *host, URL *url) {
+    struct hostent *h;
+
+    if ((h = gethostbyname(host)) == NULL){
+        herror("gethostbyname()");
+        return 1;
+    }
+
+    printf("IP Address : %s\n", inet_ntoa(*((struct in_addr *) h->h_addr)));
+
+    strcpy(url->ip,inet_ntoa(*((struct in_addr *) h->h_addr)));
+
     return 0;
 }

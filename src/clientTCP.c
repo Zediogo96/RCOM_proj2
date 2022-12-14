@@ -1,103 +1,102 @@
-/**      (C)2000-2021 FEUP
- *       tidy up some includes and parameters
- * */
 
-// #include <stdio.h>
-// #include <sys/socket.h>
-// #include <netinet/in.h>
-// #include <arpa/inet.h>
-// #include <stdlib.h>
-// #include <unistd.h>
 
-// #include <string.h>
-
-// #define SERVER_PORT 6000
-// #define SERVER_ADDR "192.168.28.96"
-
-// int main(int argc, char **argv) {
-
-//     if (argc > 1)
-//         printf("**** No arguments needed. They will be ignored. Carrying ON.\n");
-//     int sockfd;
-//     struct sockaddr_in server_addr;
-//     char buf[] = "Mensagem de teste na travessia da pilha TCP/IP\n";
-//     size_t bytes;
-
-//     /*server address handling*/
-//     bzero((char *) &server_addr, sizeof(server_addr));
-//     server_addr.sin_family = AF_INET;
-//     server_addr.sin_addr.s_addr = inet_addr(SERVER_ADDR);    /*32 bit Internet address network byte ordered*/
-//     server_addr.sin_port = htons(SERVER_PORT);        /*server TCP port must be network byte ordered */
-
-//     /*open a TCP socket*/
-//     if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-//         perror("socket()");
-//         exit(-1);
-//     }
-//     /*connect to the server*/
-//     if (connect(sockfd,
-//                 (struct sockaddr *) &server_addr,
-//                 sizeof(server_addr)) < 0) {
-//         perror("connect()");
-//         exit(-1);
-//     }
-//     /*send a string to the server*/
-//     bytes = write(sockfd, buf, strlen(buf));
-//     if (bytes > 0)
-//         printf("Bytes escritos %ld\n", bytes);
-//     else {
-//         perror("write()");
-//         exit(-1);
-//     }
-
-//     if (close(sockfd)<0) {
-//         perror("close()");
-//         exit(-1);
-//     }
-//     return 0;
-// }
-
-//functions defined 
-
+#include "clientTCP.h"
 
 //Create a new socket and connect it to an address and port
 
-// int newSocket(char *adddress, int port) {
+int newSocket(char *address, int port, int *sockfd) {
 
-//     int sockfd;
+    struct sockaddr_in server_addr;
 
-//     struct sockaddr_in server_addr;
+    /*server address handling*/
+    memset((char *) &server_addr, 0, sizeof(server_addr));
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_addr.s_addr = inet_addr(address);    /*32 bit Internet address network byte ordered*/
+    server_addr.sin_port = htons(port);        /*server TCP port must be network byte ordered */
 
-//     /*server address handling*/
+    /*open a TCP socket*/
+    if ((*sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+        perror("socket()");
+        exit(-1);
+    }
+    
+    /*connect to the server*/
+    if (connect(*sockfd, (struct sockaddr *) &server_addr,  sizeof(server_addr)) < 0) {
+        perror("connect()");
+        exit(-1);
+    }
+    return 0;
+}
 
-//     bzero((char *) &server_addr, sizeof(server_addr));
 
-//     server_addr.sin_family = AF_INET;  //IPv4 address family
-//     server_addr.sin_addr.s_addr = inet_addr(address);    /*32 bit Internet address network byte ordered*/
-//     server_addr.sin_port = htons(port);        /*server TCP port must be network byte ordered */
+//sends a command over a socket connection
 
-//     /*open the socket*/
+// int sendCommand(int sockfd, const char* cmd, size_t size) {
 
-//     if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-//         perror("socket()");
+//     size_t bytes;
+
+//     if ((bytes = write(sockfd, cmd, size)) < 0) {
+//         perror("Write error in sendCommand");
 //         return (-1);
 //     }
 
-//     /*connect to the server*/
+//     printf("Bytes sent: %ld\n", bytes);
 
-//     if (connect(sockfd, (struct sockaddr *) &server_addr, sizeof(server_addr)) < 0) {
-//         perror("connect()");
-//         return (-1);
-//     }
-
-//     return sockfd;
+//     return 0;
 
 // }
 
-// //Send commands to the server via the socket
+// //reads reply from tcp socket conncetion
+
+// int readReply(FILE* socket) {
+//     char* reply;
+//     ints code;
+//     char* end_pointer;
+//     size_t reply_size = 0;
+
+//     //read from socket while there is content, exit with code 1 if error found
+
+//     while (getline(&reply, &reply_size, socket) > 0) {
+//         printf("%s", reply);
+//         if (reply[3] == ' ') {
+//             code = strtol(reply, &end_pointer, 10);
+//             if (code >= 500 && code <= 559) {
+//                 printf("Error code: %d\n", code);
+//                 exit(1);
+//             }
+//             return 0;
+//         }
+        
+//     }
+    
+// }
 
 
+// int readResponsePassive(FILE *socket, char (*ip)[], int *port){
 
+//     char * buf;
+// 	size_t bytesRead = 0;
 
+//     while (1){
+//         getline(&buf, &bytesRead, socket);
+//         printf("%s", buf);
+//         if (buf[3] == ' '){
+//             break;
+//         }
+//     }
 
+//   strtok(buf, "(");       
+//   char* ip1 = strtok(NULL, ",");       // 193
+//   char* ip2 = strtok(NULL, ",");       // 137
+//   char* ip3 = strtok(NULL, ",");       // 29
+//   char* ip4 = strtok(NULL, ",");       // 15
 
+//   sprintf(*ip, "%s.%s.%s.%s", ip1, ip2, ip3, ip4);
+  
+//   char* p1 = strtok(NULL, ",");       // 199
+//   char* p2 = strtok(NULL, ")");       // 78
+
+//   *port = atoi(p1)*256 + atoi(p2);
+  
+//   return 0;
+// }
