@@ -2,25 +2,22 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "clientTCP.c"
-#include "URLparser.c"
+#include "../include/clientTCP.h"
+#include "../include/URLparser.h"
 
 
 int main (int argc, char *argv[]) {
 
     //Check if usage is correct and display if not
-
-    if (argc != 3) {
+    if (argc != 2) {
         fprintf(stderr, "Usage: download <URL from which to download file \n URL format according to RFC1738: ftp://[<user>:<password@]<host>/<url-path> \n");
         exit(-1);
     }
 
-    int sockfd;
-
+    int sockfd, new_sock;
     struct URL url;
 
     //parse URL to get details
-
     if (parseURL(argc, argv, &url)) {
         exit(0);
         printf("Error occured while parsing URL\n");
@@ -34,113 +31,77 @@ int main (int argc, char *argv[]) {
         return 1;
     }
 
-   /*  //open the socket for sending commands and reading responses
-
+    //open the socket for sending commands and reading responses
     FILE *socket = fdopen(sockfd, "r");
 
     //initial response from server
-
     if (readReply(socket)) {
         printf("Error occured while reading initial response from server\n");
         return 1;
     }
 
-    char buf[1024];
+    char cmd[URL_MAX_SIZE + 8];
+	// Log in to the FTP server using the provided username and password
+    sprintf(cmd, "user %s\n", url.user);
+    if (sendCommand(sockfd,cmd) != 0){
+		return 1;
+	}
+    if (readReply(socket) != 0){
+		return 1;
+	}
 
-    //send the user command
+    //////////////////////////////////////////////////////////////////////////////
 
-    //assign "user %S\n" to buf
+    sprintf(cmd, "pass %s\n",url.password);
+    if (sendCommand(sockfd,cmd) != 0){
+		return 1;
+	}
+	if (readReply(socket) != 0){
+		return 1;
+	} 
 
-    snprintf(buf, sizeof(buf), "user %s\n", user);  //this user should come from the output of the URL parser
+    // Enter passive mode and retrieve the server's IP and port
+    sprintf(cmd, "pasv \n");
+    if (sendCommand(sockfd,cmd) != 0){
+		return 1;
+	}
 
-    if (sendCommand(sockfd, buf)) {
-        printf("Error occured while sending user command\n");
-        return 1;
-    }
-
-    //read the response from the server
-
-    if (readReply(socket)) {
-        printf("Error occured while reading response from server\n");
-        return 1;
-    }
-
-    //send the password command
-
-    //assign "pass %S\n" to buf
-
-    snprintf(buf, sizeof(buf), "pass %s\n", passs);  //this pass should come from the output of the URL parser
-
-    //send the passive mode command 
-
-    //assign "pasv\n" to buf
-
-    snprintf(buf, sizeof(buf), "pasv \n"); 
-
-    if (sendCommand(sockfd, buf)) {
-        printf("Error occured while sending passive mode command\n");
-        return 1;
-    }
+    
 
     //CALCULATE IP AND PORT FROM PASV RESPONSE
 
+    //read ip and port 
     char ip[32];
     int port;
 
-    if (readResponsePassive (socket, ip, &port)) {
-        printf("Error occured while reading response from server in passive mode\n");
+    getPortPlusIp(&port, ip, socket);
+	
+    // Connect to the server on the provided IP and port and retrieve the file
+    if(newSocket(ip, port, &new_sock) != 0){
+        printf("Error starting connection\n");
         return 1;
     }
 
-    //init connection to server on ip and portt to start transfering files
+    sprintf(cmd, "retr %s\r\n",url.path); // retrieve file from path
+    if(sendCommand(sockfd,cmd) != 0){
+		return 1;
+	}
+    if(readReply(socket) != 0){
+		return 1;
+	}
 
-    if (newSocket(ip, port, &newsockfd)) {
-        printf("Error occured while creating socket\n");
-        return 1;
-    }
+	// Write the contents of the file to a local file with the same name
+    if(writeToFile(url.filename, new_sock) != 0){
+		return 1;
+	}
 
-    //send the retr command to retrieve the file from the specified path
+    // Quit the FTP session and close the connection
+    sprintf(cmd, "quit \r\n");
+    if(sendCommand(sockfd,cmd) != 0){
+		return 1;
+	}
 
-    //assign "retr %S\r\n" to buf
-
-    snprintf(buf, sizeof(buf), "retr %s\r\n", path);  //this path should come from the output of the URL parser
-
-    if (sendCommand(sockfd, buf)) {
-        printf("Error occured while sending retr command\n");
-        return 1;
-    }
-
-    //read the response from the server
-
-    if (readReply(newsockfd)) {
-        printf("Error occured while reading response from server\n");
-        return 1;
-    }
-
-    //write the contents to a new file with the same name as the file in the path
-
-    FILE *file = fopen(path, "w");  //this path should come from the output of the URL parser
-
-    if(file == NULL){
-        printf("Error opening file\n");
-        return 1;
-    }   
-
-    //read byte by byte from the socket and write to the file
-
-    char *c = malloc(1);
-    if (c == NULL)
-    {
-        printf("Error allocating memory\n");
-        return 1;
-    }
+    printf("Download complete > program will now exit...\n\n");
     
-    while(read(newsockfd, c, 1) > 0){  // read one byte at a time
-        fputc(*c, file);
-    }
-
-    free(c);
-    fclose(file);
- */
     return 0;
 }

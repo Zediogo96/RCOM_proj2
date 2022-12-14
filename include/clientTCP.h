@@ -16,3 +16,11 @@
 #define SERVER_ADDR "192.168.28.96"
 
 int newSocket(char *ip, int port, int *sockfd);
+
+int readReply(FILE* socket);
+
+int sendCommand(int sockfd,char* cmd);
+
+int readResponsePassive(FILE *socket, char (*ip)[], int *port);
+
+int writeToFile(char *fileN, int socket);
