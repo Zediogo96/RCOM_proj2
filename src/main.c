@@ -1,44 +1,31 @@
-//main function for a command line command of type download ftp://ftp.up.pt/pub/...
-
 #include <stdio.h>
 #include <stdlib.h>
 #include "clientTCP.c"
-#include "getip.c"
 #include "URLparser.c"
 
+#include "getip.c"
 
-int main (int argc, char *argv[]) {
-
-    //Check if usage is correct and display if not
-
-    if (argc != 2) {
-        fprintf(stderr, "Usage: download <URL from which to download file \n URL format according to RFC1738: ftp://[<user>:<password@]<host>/<url-path> \n");
+int main(int argc, char *argv[]){
+    if (argc != 3) {
+        fprintf(stderr, "Usage: %s <URL to deconstruct>\nURL should be as follows: ftp://[<user>:<password>@]<host>/<url-path>\n", argv[0]);
         exit(-1);
     }
 
-    char host[256];  //check this, recommended max?
-    char path[256];
-    char ipaddr[15];  //size of an ip in chars = 15
-    char user[256];
-    char passwd [256];
+    char path[MAX_URL_SIZE];
+    char host[MAX_URL_SIZE];
+    char user[MAX_URL_SIZE];
+    char password[MAX_URL_SIZE];
+    char IPaddress[MAX_URL_SIZE];
 
-    //parse URL to get details
+    struct URL url;
 
-    if (parseURL(argc, argv, host, path, user, passwd)) {
-        exit(0);
-        printf("Error occured while parsing URL\n");
+    if(parseURL(argc,argv, &url)!=0){
+        printf("Error occurred in fuction getDetails (main.c -- line 26)\n");
         exit(-1);
     }
-
-    //use getIP functiom (provided)
-
-    if (getIP(host, ipaddr)) {
-        printf("Error occured while getting IP address\n");
-        exit(-1);
-    }
-
-    //open connection and use TCP with the provided data to get the file
-
-    //TODO
-
+    printf("\n");
+    // if(getIP(host, IPaddress)!=0){
+    //     printf("Error occurred in fuction getIP (main.c -- line 31)\n");
+    //     exit(-1);
+    // }
 }
